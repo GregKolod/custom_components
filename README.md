@@ -1,9 +1,10 @@
 # custom_components
 
 draft - przeróbka francuskiej wersji Livebox do polskiego Orange (na razie poprawiona lista kanałów i usunięty nie działający EPG)
-wstawic własny adres IP
 
-  - platform: orange
-    host: 192.168.x.x
-    port: 8080
-    name: Orange
+w host wstawic własny adres IP<br/>
+
+  - platform: orange<br/>
+    host: 192.168.1.10<br/>
+    port: 8080<br/>
+    name: tuner Orange
