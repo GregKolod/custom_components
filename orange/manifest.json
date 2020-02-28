@@ -1,8 +1,8 @@
 {
-  "domain": "liveboxplaytv",
-  "name": "Orange Livebox Play TV",
-  "documentation": "https://www.home-assistant.io/integrations/liveboxplaytv",
-  "requirements": ["pyteleloisirs==3.6"],
+  "domain": "orange",
+  "name": "Orange Livebox Poland",
+  "documentation": "",
+  "requirements": [],
   "dependencies": [],
   "codeowners": ["@pschmitt"]
 }
