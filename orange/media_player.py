@@ -3,7 +3,7 @@ from datetime import timedelta
 import logging
 
 from .liveboxplaytv import LiveboxPlayTv
-import pyteleloisirs
+
 import requests
 import voluptuous as vol
 
@@ -134,6 +134,7 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
                 # else:
                 #     chan_img_url = self._client.get_current_channel_image(img_size)
                 #     self._media_image_url = chan_img_url
+        # TODO
         except requests.ConnectionError:
             self._state = None
 

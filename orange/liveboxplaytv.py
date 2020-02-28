@@ -179,12 +179,8 @@ class LiveboxPlayTv(object):
 
     def get_channel_image(self, channel, img_size=300, skip_cache=False):
         """Get the logo for a channel"""
-        from bs4 import BeautifulSoup
-        from wikipedia.exceptions import PageError
-        import re
-        import wikipedia
-        wikipedia.set_lang('pl')
-# pobrac linki z pliku channel.py do logo na stronie orange - dopisac 199 -224
+
+        # TODO pobrac linki z pliku channel.py do logo na stronie orange - dopisac 199 -224
         if not channel:
             _LOGGER.error('Channel is not set. Could not retrieve image.')
             return
@@ -196,12 +192,6 @@ class LiveboxPlayTv(object):
             return img
 
         channel_info = self.get_channel_info(channel)
-        query = channel_info['wiki_page']
-        if not query:
-            _LOGGER.debug('Wiki page is not set for channel %s', channel)
-            return
-        _LOGGER.debug('Query: %s', query)
-        # If there is a max image size defined use it.
         if 'max_img_size' in channel_info:
             if img_size > channel_info['max_img_size']:
                 _LOGGER.info(
@@ -210,16 +200,11 @@ class LiveboxPlayTv(object):
                 )
                 img_size = channel_info['max_img_size']
         try:
-            page = wikipedia.page(query)
-            _LOGGER.debug('Wikipedia article title: %s', page.title)
-            soup = BeautifulSoup(page.html(), 'html.parser')
-            images = soup.find_all('img')
             img_src = None
-            for i in images:
-                if i['alt'].startswith('Image illustrative'):
-                    img_src = re.sub(r'\d+px', '{}px'.format(img_size),
-                                     i['src'])
-            img = 'https:{}'.format(img_src) if img_src else None
+            for i in CHANNELS:
+                img_src = i['logo']
+            img = 'https://klient.orange.pl/tv-pakiety/channels/{}-logo.png'.format(img_src)
+
             # Cache result
             self._cache_channel_img[channel] = img
             return img
