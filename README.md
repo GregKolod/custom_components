@@ -1,4 +1,6 @@
 # custom_components
+liveboxplaytv
+
 
 draft - przeróbka francuskiej wersji Livebox do polskiego Orange (na razie poprawiona lista kanałów i usunięty nie działający EPG)
 
