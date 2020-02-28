@@ -184,7 +184,7 @@ class LiveboxPlayTv(object):
         import re
         import wikipedia
         wikipedia.set_lang('pl')
-
+# pobrac linki z pliku channel.py do logo na stronie orange - dopisac 199 -224
         if not channel:
             _LOGGER.error('Channel is not set. Could not retrieve image.')
             return
