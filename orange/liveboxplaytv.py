@@ -180,7 +180,6 @@ class LiveboxPlayTv(object):
     def get_channel_image(self, channel, img_size=300, skip_cache=False):
         """Get the logo for a channel"""
 
-        # TODO pobrac linki z pliku channel.py do logo na stronie orange - dopisac 199 -224
         if not channel:
             _LOGGER.error('Channel is not set. Could not retrieve image.')
             return
@@ -191,23 +190,26 @@ class LiveboxPlayTv(object):
             _LOGGER.debug('Cache hit: %s -> %s', channel, img)
             return img
 
-        channel_info = self.get_channel_info(channel)
-        if 'max_img_size' in channel_info:
-            if img_size > channel_info['max_img_size']:
-                _LOGGER.info(
-                    'Requested image size is bigger than the max, '
-                    'setting it to %s', channel_info['max_img_size']
-                )
-                img_size = channel_info['max_img_size']
+        # channel_info = self.get_channel_info(channel)
+        # if 'max_img_size' in channel_info:
+        #     if img_size > channel_info['max_img_size']:
+        #         _LOGGER.info(
+        #             'Requested image size is bigger than the max, '
+        #             'setting it to %s', channel_info['max_img_size']
+        #         )
+        #         img_size = channel_info['max_img_size']
         try:
             img_src = None
             for i in CHANNELS:
-                img_src = i['logo']
-            img = 'https://klient.orange.pl/tv-pakiety/channels/{}-logo.png'.format(img_src)
+                if i['name'] == channel:
+                    img_src = i['logo']
+                    # img = 'https://d-tm.ppstatic.pl/loga_stacji/cocp.png'
+                    img = 'https://klient.orange.pl/tv-pakiety/channels/{}-logo.png'.format(img_src)
+                    # Cache result
+                    self._cache_channel_img[channel] = img
+                    _LOGGER.debug('livebox get logo  %s -> %s', channel, img)
+                    return img
 
-            # Cache result
-            self._cache_channel_img[channel] = img
-            return img
         except PageError:
             _LOGGER.error('Could not fetch channel image for %s', channel)
 

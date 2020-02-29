@@ -3,7 +3,7 @@ from datetime import timedelta
 import logging
 
 from .liveboxplaytv import LiveboxPlayTv
-
+# import pyteleloisirs
 import requests
 import voluptuous as vol
 
@@ -112,29 +112,10 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
             # Update current channel
             channel = self._client.channel
             self._current_channel = channel
-            # if channel is not None:
-            #     self._current_channel = channel
-            #     program = await self._client.async_get_current_program()
-            #     if program and self._current_program != program.get("name"):
-            #         self._current_program = program.get("name")
-            #         # Media progress info
-            #         self._media_duration = pyteleloisirs.get_program_duration(program)
-            #         rtime = pyteleloisirs.get_remaining_time(program)
-            #         if rtime != self._media_remaining_time:
-            #             self._media_remaining_time = rtime
-            #             self._media_last_updated = dt_util.utcnow()
-                # Set media image to current program if a thumbnail is
-                # available. Otherwise we'll use the channel's image.
-                # img_size = 800
-                # prg_img_url = await self._client.async_get_current_program_image(
-                #     img_size
-                # )
-                # if prg_img_url:
-                #     self._media_image_url = prg_img_url
-                # else:
-                #     chan_img_url = self._client.get_current_channel_image(img_size)
-                #     self._media_image_url = chan_img_url
-        # TODO
+            # img_size = 800
+            # self._media_image_url = self._client.get_current_channel_image(img_size)
+            self._media_image_url = self._client.get_channel_image(channel)
+            _LOGGER.debug('media_player async %s', channel)
         except requests.ConnectionError:
             self._state = None
 
@@ -181,10 +162,10 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
 
         return self._current_channel
 
-        # if self._current_channel:
-        #     if self._current_program:
-        #         return f"{self._current_channel}: {self._current_program}"
-        #     return self._current_channel
+        if self._current_channel:
+            if self._current_program:
+                return f"{self._current_channel}: {self._current_program}"
+            return self._current_channel
 
     @property
     def media_duration(self):
