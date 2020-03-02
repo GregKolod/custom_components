@@ -1,5 +1,6 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+import datetime
 
 BASE_URL = 'https://www.teleman.pl/program-tv/stacje/'
 
@@ -28,6 +29,10 @@ def channel_scrapper(channel):
     chanLogo = soup.find('div', attrs={'class': 'stationTitle'}).find('img')['src']
     # logo kanału
     
+    prog_genre = ul_tag[0].find('p', attrs={'class': 'genre'}).text
+    #program typ
+    
+    
     print('Aktualny program', title)
     print(prog_start, prog_end)
   
@@ -39,6 +44,18 @@ def channel_scrapper(channel):
     print(prog_img)
 
     print(chanLogo)
+    # czas trwania programu - zamieniem na time, bo muszę wyrugowac date, a potem znowu na datetime żeby policzyc różnice
+    start= (datetime.datetime.strptime(prog_start,'%H:%M')).time()
+    stop = datetime.datetime.strptime(prog_end,'%H:%M')
+    # dodaje godzine bo otrzymuje niewałaściwą
+    teraz = (datetime.datetime.now()  + datetime.timedelta(hours=1))
+    # tu znowu zmiana na datetime
+    #TODO do spardzenie i jak bedzie z programem po północy?
+    startd= datetime.datetime.combine(datetime.date.today(), start)
+ 
+    progress = (teraz -  startd)
+
+    print(progress.strftime('%H:%M'))
 
     return channel_list
 
