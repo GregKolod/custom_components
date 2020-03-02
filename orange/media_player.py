@@ -159,8 +159,7 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
     @property
     def media_title(self):
         """Title of current playing media."""
-
-        return self._current_channel
+        # return self._current_channel
 
         if self._current_channel:
             if self._current_program:
