@@ -32,6 +32,8 @@ def channel_scrapper(channel):
     prog_genre = ul_tag[0].find('p', attrs={'class': 'genre'}).text
     #program typ
     
+    opis = (ul_tag[0].find('p', attrs={'class': 'genre'})).next_sibling.text.strip()
+    #opis krótki 
     
     print('Aktualny program', title)
     print(prog_start, prog_end)
@@ -42,8 +44,14 @@ def channel_scrapper(channel):
     # link do programu
 
     print(prog_img)
-
+    print('http:' + prog_img.replace('crop-100x63',''))
+    #TODO wstawić warunki kiedy brak obrazka
     print(chanLogo)
+    
+    print('http:' + chanLogo[0:chanLogo.find('?v=')])
+    #link do logo
+    
+    
     # czas trwania programu - zamieniem na time, bo muszę wyrugowac date, a potem znowu na datetime żeby policzyc różnice
     start= (datetime.datetime.strptime(prog_start,'%H:%M')).time()
     stop = datetime.datetime.strptime(prog_end,'%H:%M')
@@ -56,7 +64,7 @@ def channel_scrapper(channel):
     progress = (teraz -  startd)
 
     print(progress.strftime('%H:%M'))
-
+    
     return channel_list
 
 
