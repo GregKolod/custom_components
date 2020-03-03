@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import datetime
@@ -65,8 +69,6 @@ def channel_scrapper(channel):
     jaka_data = soup.find('a', attrs={'class': 'is-selected'}).find('span').text.strip()
 
     data = datetime.datetime.strptime(str(rok) + jaka_data, '%Y%d.%m')
-
-    # TODO wstawić warunki kiedy brak obrazka
 
     # czas trwania programu - zamieniem na time, bo muszę wyrugowac date, a potem znowu na datetime żeby policzyc różnice
 
