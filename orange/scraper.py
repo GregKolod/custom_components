@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import datetime
@@ -14,7 +18,7 @@ def channel_scrapper(channel):
     channel_list = []
 
     ul_tag = soup.find('ul', attrs={'class': 'stationItems'}).find_all('li')
-    # lista wszyztkich li w tagu ul
+    # lista wszystkich li w tagu ul
 
     prog_start = ul_tag[0].find('em').text
     # godzina startu programu - [0] bo pierwszy z listy bierzemy
@@ -34,8 +38,6 @@ def channel_scrapper(channel):
 
     except:
         prog_img_s = ''
-
-    # prog_img_s = 'http:' + (ul_tag[0].find('img')['src']) if len( (ul_tag[0].find('img')['src'])) !=0 else ' '
 
     # obraz programu - mały
 
@@ -66,8 +68,6 @@ def channel_scrapper(channel):
 
     data = datetime.datetime.strptime(str(rok) + jaka_data, '%Y%d.%m')
 
-    # TODO wstawić warunki kiedy brak obrazka
-
     # czas trwania programu - zamieniem na time, bo muszę wyrugowac date, a potem znowu na datetime żeby policzyc różnice
 
     start = (datetime.datetime.strptime(prog_start, '%H:%M')).time()
@@ -93,5 +93,4 @@ def channel_scrapper(channel):
     return channel_list
 
 
-# shows = channel_scrapper('https://www.teleman.pl/program-tv/stacje/TVP-1')
 shows = channel_scrapper('tvp-abc')
