@@ -5,7 +5,10 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import datetime
+import logging
 
+
+_LOGGER = logging.getLogger(__name__)
 BASE_URL = 'https://www.teleman.pl/program-tv/stacje/'
 
 
@@ -35,7 +38,11 @@ def channel_scrapper(channel):
     try:
         prog_img_s = 'http:' + (ul_tag[0].find('img')['src'])
 
-    except:
+    
+    except Exception:
+        
+       _LOGGER.error('Exception occured while fetching the channel logo')
+                   
     # TODO dodać klasę wyjątku!!! -   https://docs.python.org/3/library/exceptions.html  
         prog_img_s = ''
 
