@@ -31,12 +31,12 @@ def channel_scrapper(channel):
     title = ul_tag[0].find('div', attrs={'class': 'detail'}).find('a').text
     # tytuł programu
 
-    # prog_img_s = ul_tag[0].find('img')['src']
-
+   
     try:
         prog_img_s = 'http:' + (ul_tag[0].find('img')['src'])
 
     except:
+    # TODO dodać klasę wyjątku!!! -   https://docs.python.org/3/library/exceptions.html  
         prog_img_s = ''
 
     # obraz programu - mały
