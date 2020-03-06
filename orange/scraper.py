@@ -5,7 +5,10 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import datetime
+import logging
 
+
+_LOGGER = logging.getLogger(__name__)
 BASE_URL = 'https://www.teleman.pl/program-tv/stacje/'
 
 
@@ -20,23 +23,64 @@ def channel_scrapper(channel):
     ul_tag = soup.find('ul', attrs={'class': 'stationItems'}).find_all('li')
     # lista wszystkich li w tagu ul
 
+   
+    
     prog_start = ul_tag[0].find('em').text
-    # godzina startu programu - [0] bo pierwszy z listy bierzemy
+    # godzina startu programu - [0] bo pierwszy z listy bierzemy   
+    
+    start = (datetime.datetime.strptime(prog_start, '%H:%M')).time()
 
-    prog_end = ul_tag[1].find('em').text
+    # czas trwania programu - zamieniem na time, bo muszę wyrugowac date, a potem znowu na datetime żeby policzyc różnice
+
+    # prog_end = ul_tag[1].find('em').text
     # godzina zakończenie programu - [1] bo drugi listy bierzemy
-
     # TODO - zrobić sprawdzenia co robić jak nie można odnaleźć godziny + 2h
+    try:
+        prog_end = ul_tag[1].find('em').text
+        stop = datetime.datetime.strptime(prog_end, '%H:%M')
+    
+    except Exception:
+        
+        stop = start + datetime.timedelta(hours=2))
+        _LOGGER.error('Exception occured while fetching the program end)
+  
+    
+    teraz = datetime.datetime.now()
+    rok = teraz.date().year
+
+    jaka_data = soup.find('a', attrs={'class': 'is-selected'}).find('span').text.strip()
+
+    data = datetime.datetime.strptime(str(rok) + jaka_data, '%Y%d.%m')
+
+
+
+    
+                      
+                      
+
+    # + datetime.timedelta(hours=1))
+    # tu znowu zmiana na datetime
+    # TODO do spardzenie i jak bedzie z programem po północy?
+
+    started = datetime.datetime.combine(data, start)
+
+    progress = str(teraz - started).split('.', 2)[0]
+              
+                
 
     title = ul_tag[0].find('div', attrs={'class': 'detail'}).find('a').text
     # tytuł programu
 
-    # prog_img_s = ul_tag[0].find('img')['src']
-
+   
     try:
         prog_img_s = 'http:' + (ul_tag[0].find('img')['src'])
 
-    except:
+    
+    except Exception:
+        
+       _LOGGER.error('Exception occured while fetching the channel logo')
+                   
+    # TODO dodać klasę wyjątku!!! -   https://docs.python.org/3/library/exceptions.html  
         prog_img_s = ''
 
     # obraz programu - mały
@@ -61,25 +105,6 @@ def channel_scrapper(channel):
     opis = (ul_tag[0].find('p', attrs={'class': 'genre'})).next_sibling.text.strip()
     # opis krótki
 
-    teraz = datetime.datetime.now()
-    rok = teraz.date().year
-
-    jaka_data = soup.find('a', attrs={'class': 'is-selected'}).find('span').text.strip()
-
-    data = datetime.datetime.strptime(str(rok) + jaka_data, '%Y%d.%m')
-
-    # czas trwania programu - zamieniem na time, bo muszę wyrugowac date, a potem znowu na datetime żeby policzyc różnice
-
-    start = (datetime.datetime.strptime(prog_start, '%H:%M')).time()
-    stop = datetime.datetime.strptime(prog_end, '%H:%M')
-
-    # + datetime.timedelta(hours=1))
-    # tu znowu zmiana na datetime
-    # TODO do spardzenie i jak bedzie z programem po północy?
-
-    started = datetime.datetime.combine(data, start)
-
-    progress = str(teraz - started).split('.', 2)[0]
 
     # print(data)
     print(prog_start, prog_end)
