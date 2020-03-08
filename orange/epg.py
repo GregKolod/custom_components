@@ -109,7 +109,7 @@ def resize_program_image(img_url, img_size=300):
     Resize a program's thumbnail to the desired dimension
     '''
 
-    img_url = img_url.replace('crop-100x63', '')
+    img_url = img_url.replace('/crop-100x63', '')
 
     #  Robie zaślepkę  - zwracam to co dostaje
     #
