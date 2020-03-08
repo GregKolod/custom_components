@@ -9,10 +9,12 @@ import logging
 import requests
 import time
 
+from .epg import async_get_current_program as async_get_cprg
+from .epg import resize_program_image
 from fuzzywuzzy import process
 
-from channels import CHANNELS
-from keys import KEYS
+from .channels import CHANNELS
+from .keys import KEYS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -133,7 +135,7 @@ class LiveboxPlayTv(object):
 
     @asyncio.coroutine
     def async_get_current_program(self):
-        from pyteleloisirs import async_get_current_program as async_get_cprg
+
         if self.channel and self.channel != 'N/A':
             return (yield from async_get_cprg(self.channel))
 
@@ -145,7 +147,7 @@ class LiveboxPlayTv(object):
 
     @asyncio.coroutine
     def async_get_current_program_image(self, img_size=300):
-        from pyteleloisirs import resize_program_image
+
         res = yield from self.async_get_current_program()
         if res:
             return resize_program_image(res.get('img'), img_size)
@@ -202,7 +204,6 @@ class LiveboxPlayTv(object):
             for i in CHANNELS:
                 if i['name'] == channel:
                     img_src = i['logo']
-                    # img = 'https://d-tm.ppstatic.pl/loga_stacji/cocp.png'
                     img = 'https://klient.orange.pl/tv-pakiety/channels/{}-logo.png'.format(img_src)
                     # Cache result
                     self._cache_channel_img[channel] = img
@@ -216,6 +217,7 @@ class LiveboxPlayTv(object):
         return CHANNELS
 
     def __update(self):
+        # obsolate
         _LOGGER.info('Refresh Orange API data')
         url = 'http://lsm-rendezvous040413.orange.fr/API/?output=json&withChannels=1'
         resp = requests.get(url)
@@ -316,7 +318,7 @@ class LiveboxPlayTv(object):
         _LOGGER.debug('Media is already paused.')
 
     def event_notify(self):
-        # https://www.domotique-fibaro.fr/topic/4444-tv-commande-decodeur-livebox-play-et-gestion-d%C3%A3%C2%A9tat-temps-r%C3%A3%C2%A9el/
+
         url = 'http://{}:{}/remoteControl/notifyEvent'.format(self.hostname,
                                                               self.port)
         resp = requests.get(url)

@@ -22,15 +22,14 @@ async def _async_request_soup(url):
 
     _LOGGER.debug('GET %s', url)
 
-    text = urlopen(url)
-    # async with aiohttp.ClientSession() as session:
-    #
-    #     print('_async_request_soup url', url)
-    #     resp = await session.get(url)
-    #     assert resp.status == 200
-    #     print('_async_request_soup resp', resp)
-    #     text = await resp.text()
-    #     # text = resp
+    # text = urlopen(url)
+    async with aiohttp.ClientSession() as session:
+        # print('_async_request_soup url', url)
+        resp = await session.get(url)
+        assert resp.status == 200
+        # print('_async_request_soup resp', resp)
+        text = await resp.text()
+        # text = resp
     # print('_async_request_soup text', text)
 
     return BeautifulSoup(text, 'html.parser')

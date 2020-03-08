@@ -3,7 +3,7 @@ from datetime import timedelta
 import logging
 
 from .liveboxplaytv import LiveboxPlayTv
-import epg
+from . import epg
 import requests
 import voluptuous as vol
 
