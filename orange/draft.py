@@ -13,8 +13,8 @@ tv_stacje = soup.find('div', attrs={'id': 'stations-index'}).find_all('a')
 
 # zwraca nazwe stacji do przygotowania linku dla scrapera
 
-for stacja in range(len(tv_stacje)):
-    link_tv = str(tv_stacje[stacja]['href']).split('/')[3]
-    nazwa_stacji = tv_stacje[stacja].text
+for stacja in enumerate(tv_stacje):
+    link_tv = str(stacja[1]['href']).split('/')[3]
+    nazwa_stacji = stacja[1].text
     print(nazwa_stacji, link_tv)
     # print(BASE_URL+link_tv)

@@ -9,11 +9,10 @@ import logging
 import requests
 import time
 
-# from fuzzywuzzy import process
+from fuzzywuzzy import process
 
-from .channels import CHANNELS
-from .keys import KEYS
-
+from channels import CHANNELS
+from keys import KEYS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -323,3 +322,4 @@ class LiveboxPlayTv(object):
         resp = requests.get(url)
         resp.raise_for_status()
         return resp.json()
+

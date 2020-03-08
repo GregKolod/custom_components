@@ -21,7 +21,10 @@ async def _async_request_soup(url):
     _LOGGER.debug('GET %s', url)
     async with aiohttp.ClientSession() as session:
         resp = await session.get(url)
+        # print('_async_request_soup resp', resp)
         text = await resp.text()
+        # print('_async_request_soup text', text)
+
         return BeautifulSoup(text, 'html.parser')
 
 
@@ -32,16 +35,21 @@ async def async_determine_channel(channel):
     '''
     from fuzzywuzzy import process
     channel_data = await async_get_channels()
+    print('async_determine_channel channel_data ', channel_data)
     if not channel_data:
         _LOGGER.error('No channel data. Cannot determine requested channel.')
         return
     channels = [c for c in channel_data.get('data', {}).keys()]
+    print('async_determine_channel channels ', channels)
+
     if channel in channels:
+        print('async_determine_channel channel ', channel)
         return channel
     else:
         res = process.extractOne(channel, channels)[0]
         _LOGGER.debug('No direct match found for %s. Resort to guesswork.'
                       'Guessed %s', channel, res)
+        print('async_determine_channel res ', res)
         return res
 
 
@@ -181,7 +189,9 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
     '''
     Get the program data for a channel
     '''
+    print('async_get_program_guide channel', channel)
     chan = await async_determine_channel(channel)
+    print('#async_get_program_guide chan', chan)
     now = datetime.datetime.now()
     today = datetime.date.today()
     max_cache_age = datetime.timedelta(hours=refresh_interval)
@@ -221,7 +231,9 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
                 duration[1] = 0
             duration = [ int(i) for i in duration ]
             prog_start = datetime.datetime.combine(today, datetime.time(start_time[0], start_time[1]))
+            print(prog_start)
             prog_end = prog_start + datetime.timedelta(hours=duration[0], minutes=duration[1])
+            print(prog_end)
             img = prg_item.find('img', {'class': 'apply-ratio'})
             prog_img = img.get('data-src') if img else None
             programs.append(
@@ -248,7 +260,9 @@ async def async_get_current_program(channel, no_cache=False):
     Get the current program info
     '''
     chan = await async_determine_channel(channel)
+    print('async_get_current_program chan ', chan)
     guide = await async_get_program_guide(chan, no_cache)
+    print('async_get_current_program guide ', guide)
     if not guide:
         _LOGGER.warning('Could not retrieve TV program for %s', channel)
         return
@@ -257,24 +271,28 @@ async def async_get_current_program(channel, no_cache=False):
         start = prog.get('start_time')
         end = prog.get('end_time')
         if now > start and now < end:
+            print('async_get_current_program prog', prog)
             return prog
 
 
 def _request_soup(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(_async_request_soup(*args, **kwargs))
+    print('_request_soup', res)
     return res
 
 
 def get_channels(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_channels(*args, **kwargs))
+    print('get_channels', res)
     return res
 
 
 def get_program_guide(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_program_guide(*args, **kwargs))
+    print('get_program_guide res', res)
     return res
 
 
@@ -282,3 +300,17 @@ def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
     return res
+
+
+if __name__ == "__main__":
+    # loop = asyncio.get_event_loop()
+    # # loop.run_until_complete(async_determine_channel('tfi'))
+    # loop.run_until_complete(async_get_current_program('TF1'))
+    #
+    # loop.close()
+
+    # print(get_program_duration('Tfi'))
+    # _request_soup('https://www.teleman.pl/program-tv/stacje/')
+    #
+    # get_channels('TVP-1')
+    get_program_guide('tvp ')
