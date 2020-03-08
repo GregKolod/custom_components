@@ -86,14 +86,9 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
 
     for stacja in range(len(tv_stacje)):
         try:
-
             href = str(tv_stacje[stacja]['href']).split('/')[3]
             nazwa_stacji = tv_stacje[stacja].text
-            # print('nazwa_stacji', nazwa_stacji)
             channels[nazwa_stacji] = BASE_URL + href
-            # print('nazwa_stacji channels', channels[nazwa_stacji])
-
-
         except Exception as exc:
             _LOGGER.error('Exception occured while fetching the channel '
                           'list: %s', exc)
@@ -104,30 +99,17 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
 
 
 def resize_program_image(img_url, img_size=300):
-    # TODO nie wiem po co to w teleman sa dwa rozmiary
     '''
     Resize a program's thumbnail to the desired dimension
     '''
+    try:
+        imgr_url = img_url.replace('crop-100x63', '470x265')
 
-    img_url = img_url.replace('/crop-100x63', '')
+    except Exception as exc:
+        _LOGGER.error('Exception occured while converting image %s', exec)
+        imgr_url = img_url
 
-    #  Robie zaślepkę  - zwracam to co dostaje
-    #
-    # match = re.match(r'.+/(\d+)x(\d+)/.+', img_url)
-    # if not match:
-    #     _LOGGER.warning('Could not compute current image resolution of %s',
-    #                     img_url)
-    #     return img_url
-    # res_x = int(match.group(1))
-    # res_y = int(match.group(2))
-    # # aspect_ratio = res_x / res_y
-    # target_res_y = int(img_size * res_y / res_x)
-    # return re.sub(
-    #     r'{}x{}'.format(res_x, res_y),
-    #     r'{}x{}'.format(img_size, target_res_y),
-    #     img_url)
-
-    return img_url
+    return imgr_url
 
 
 def get_current_program_progress(program):
