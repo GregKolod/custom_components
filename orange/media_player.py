@@ -136,22 +136,6 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
         except requests.ConnectionError:
             self._state = None
 
-    # async def async_update(self):
-    #     """Retrieve the latest data."""
-    #
-    #     try:
-    #         self._state = self.refresh_state()
-    #         # Update channel list
-    #         self.refresh_channel_list()
-    #         # Update current channel
-    #         channel = self._client.channel
-    #         self._current_channel = channel
-    #         # img_size = 800
-    #         # self._media_image_url = self._client.get_current_channel_image(img_size)
-    #         self._media_image_url = self._client.get_channel_image(channel)
-    #         _LOGGER.debug('media_player async %s', channel)
-    #     except requests.ConnectionError:
-    #         self._state = None
 
     @property
     def name(self):
@@ -193,7 +177,6 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
     @property
     def media_title(self):
         """Title of current playing media."""
-        # return self._current_channel
 
         if self._current_channel:
             if self._current_program:

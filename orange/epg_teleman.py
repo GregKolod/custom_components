@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import aiohttp
 import datetime
 import asyncio
 import logging
+import re
+from urllib.request import urlopen
 
 _CACHE = {}
 _LOGGER = logging.getLogger(__name__)
-BASE_URL = 'https://programtv.onet.pl'
+BASE_URL = 'https://www.teleman.pl/program-tv/stacje/'
 
 
 async def _async_request_soup(url):
@@ -18,19 +21,23 @@ async def _async_request_soup(url):
     '''
 
     _LOGGER.debug('GET %s', url)
-    # text = urlopen(url)
-    # return BeautifulSoup(text, 'html.parser')
 
-    async with aiohttp.ClientSession() as session:
-        # print('_async_request_soup url', url)
-        resp = await session.get(url)
-        # print('_async_request_soup resp', resp)
-        text = await resp.text()
+    # # text = urlopen(url)
+    # async with aiohttp.ClientSession() as session:
+    #     # print('_async_request_soup url', url)
+    #     resp = await session.get(url)
+    #     assert resp.status == 200
+    #     # print('_async_request_soup resp', resp)
+    #     text = await resp.text()
+    #     # text = resp
+    # # print('_async_request_soup text', text)
 
-        return BeautifulSoup(text, 'html.parser')
+    text = urlopen(url)
+    return BeautifulSoup(text, 'html.parser')
 
 
 async def async_determine_channel(channel):
+    # TODO do przerobienia  - pobieramy kanały z  list channels.py
     '''
     Check whether the current channel is correct. If not try to determine it
     using fuzzywuzzy
@@ -38,9 +45,6 @@ async def async_determine_channel(channel):
     from fuzzywuzzy import process
     channel_data = await async_get_channels()
     # print('async_determine_channel channel_data ', channel_data)
-
-    # print(len(channel_data['data']))
-
     if not channel_data:
         _LOGGER.error('No channel data. Cannot determine requested channel.')
         return
@@ -53,7 +57,7 @@ async def async_determine_channel(channel):
         res = process.extractOne(channel, channels)[0]
         _LOGGER.debug('No direct match found for %s. Resort to guesswork.'
                       'Guessed %s', channel, res)
-        # print('async_determine_channel res', channel, res)
+        # print('async_determine_channel res', res)
         return res
 
 
@@ -76,18 +80,16 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
             _LOGGER.debug('Found outdated channel list in cache. Update it.')
             _CACHE.pop('channels')
 
-    soup = await _async_request_soup(BASE_URL + '/stacje')
+    soup = await _async_request_soup(BASE_URL)
     channels = {}
-    tv_station = soup.find('ul', class_='channelList').find_all('li')
 
-    for station in range(len(tv_station)):
+    tv_stacje = soup.find('div', attrs={'id': 'stations-index'}).find_all('a')
+
+    for stacja in range(len(tv_stacje)):
         try:
-            href = tv_station[station].find('a')['href']
-            tvStationName = tv_station[station].find('a')['title']
-            # print('nazwa_stacji', tvStationName)
-            channels[tvStationName] = BASE_URL + href
-            # print('nazwa_stacji channels', channels[tvStationName])
-
+            href = str(tv_stacje[stacja]['href']).split('/')[3]
+            nazwa_stacji = tv_stacje[stacja].text
+            channels[nazwa_stacji] = BASE_URL + href
         except Exception as exc:
             _LOGGER.error('Exception occured while fetching the channel '
                           'list: %s', exc)
@@ -99,12 +101,11 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
 
 def resize_program_image(img_url, img_size=300):
     '''
-    TODO - Nie działa zupełnie - do zmiany w kodzie
     Resize a program's thumbnail to the desired dimension
     '''
     try:
         imgr_url = img_url.replace('crop-100x63', '470x265')
-    # todo
+
     except Exception as exc:
         _LOGGER.error('Exception occured while converting image %s', exec)
         imgr_url = img_url
@@ -113,6 +114,7 @@ def resize_program_image(img_url, img_size=300):
 
 
 def get_current_program_progress(program):
+    # todo to chyba bez zmian
     '''
     Get the current progress of the program in %
     '''
@@ -125,6 +127,7 @@ def get_current_program_progress(program):
 
 
 def get_program_duration(program):
+    # todo to chyba bez zmian
     '''
     Get a program's duration in seconds
     '''
@@ -139,6 +142,7 @@ def get_program_duration(program):
 
 
 def get_remaining_time(program):
+    # todo to chyba bez zmian
     '''
     Get the remaining time in seconds of a program that is currently on.
     '''
@@ -154,11 +158,52 @@ def get_remaining_time(program):
         _LOGGER.debug('Program data: %s', program)
         return 0
     progress = now - program_start
-    # print(progress)
     return progress.seconds
 
 
+def extract_program_summary(data):
+    '''
+    Extract the summary data from a program's detail page
+    '''
+    print(data)
+    soup = BeautifulSoup(data, 'html.parser')
+
+    try:
+        print('summary info')
+        print(soup.find('p', attrs={'class': 'genre'}).next_sibling.text.strip())
+        return soup.find('p', attrs={'class': 'genre'}).next_sibling.text.strip()
+
+    except Exception:
+        print('no summary info')
+        _LOGGER.info('No summary found for program: %s',
+                     soup.find('h1').text.strip())
+    finally:
+        _LOGGER.info('No summary found nor program name')
+
+    return "No summary"
+
+
+async def async_set_summary(program):
+    '''
+    Set a program's summary
+    '''
+    # import aiohttp
+    # async with aiohttp.ClientSession() as session:
+    #
+    #     resp = await session.get(program.get('url'))
+    #     text = await resp.text()
+    text = urlopen(url)
+
+    summary = extract_program_summary(text)
+    print('summary ', summary)
+    program['summary'] = summary
+    return program
+
+    # todo wszystko poniżej do weryfikacji
+
+
 async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
+    # todo scraper
     """
     Get the program data for a channel
     """
@@ -169,7 +214,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
     # print('#async_get_program_guide chan', chan)
 
     now = datetime.datetime.now()
-    # today = datetime.date.today()
+    today = datetime.date.today()
 
     max_cache_age = datetime.timedelta(hours=refresh_interval)
 
@@ -191,99 +236,60 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
     if not url:
         _LOGGER.error('Could not determine URL for %s', chan)
         return
-
     soup = await _async_request_soup(url)
     programs = []
-
-    ul_tag = soup.find('div', class_='emissions').find('ul').find_all('li')
-
-    # print(ul_tag)
-
-    for prg_item in range(len(ul_tag)):
-
+    ul_tag = soup.find('ul', attrs={'class': 'stationItems'}).find_all('li', {'class': re.compile(r'cat-.')})
+    for prg_item in range(len(ul_tag) - 1):
+        # znajdz wszytkie elemnty które rozpoczynja sie od cat-  reszta to wstawione reklamy
+        # oostania pozycja nie ma godziny zakończnia!
         try:
-            prog_name = ul_tag[prg_item].find('a').text.strip()
+            prog_name = ul_tag[prg_item].find('div', attrs={'class': 'detail'}).find('a').text.strip()
             # nazwa programu
-            # print('prog_name' ,prog_name)
-
-            prog_url = BASE_URL[:26] + ul_tag[prg_item].find('a')['href']
-
-            # print('prog_url' , prog_url)
-
+            prog_url = BASE_URL[:22] + ul_tag[prg_item].find('div', attrs={'class': 'detail'}).find('a')['href']
             if not prog_url:
                 _LOGGER.warning('Failed to retrieve the detail URL for program %s. '
                                 'The summary will be empty', prog_name)
-            try:
-                prog_type = ul_tag[prg_item].find('span', class_='type').text.strip()
-                # print('prog_type', prog_type)
-
-            except Exception:
-                prog_type = ''
-                # print('prog_type e', prog_type)
-                # dla zakończenia programy nie ma typu programu
-                _LOGGER.error('Exception occured while fetching the program genre')
+            prog_type = ul_tag[prg_item].find('p', attrs={'class': 'genre'}).text.strip()
+            start_time = (datetime.datetime.strptime(ul_tag[prg_item].find('em').text, '%H:%M'))
+            # jak  nie znajde końca programu bo ostatni w tym dniu to zakładam ze trwa 2h
+            # stop_time = (datetime.datetime.strptime(ul_tag[prg_item+1].find('em').text, '%H:%M'))
 
             try:
-                prog_summary = ul_tag[prg_item].find('div', class_='titles').find('p').text.strip()
-                # print('prog_summary ', prog_summary)
-
+                stop_time = (datetime.datetime.strptime(ul_tag[prg_item + 1].find('em').text, '%H:%M'))
             except Exception:
-                prog_summary = ''
-                # print('prog_summary  e', prog_summary)
-                _LOGGER.error('Exception occured while fetching the program summary')
-
-            start_time = (
-                datetime.datetime.strptime(ul_tag[prg_item].find('span', class_='hour').text.strip(), '%H:%M'))
-            # print(start_time)
-
-            try:
-
-                stop_time = (datetime.datetime.strptime(
-                    ul_tag[prg_item + 1].find('span', class_='hour').text.strip(), '%H:%M'))
-                # print(stop_time)
-
-            except Exception:
-
                 stop_time = start_time + datetime.timedelta(hours=2)
                 _LOGGER.error('Exception occured while fetching the program end')
-
-            today = datetime.date.today()
-
-            prog_start = datetime.datetime.combine(today, start_time.time())
+            jaka_data = soup.find('a', attrs={'class': 'is-selected'}).find('span').text.strip()
+            rok = today.year
+            data = datetime.datetime.strptime(str(rok) + jaka_data, '%Y%d.%m')
+            prog_start = datetime.datetime.combine(data, start_time.time())
             # print('prog_start', prog_start)
 
-            prog_end = datetime.datetime.combine(today, stop_time.time())
+            prog_end = datetime.datetime.combine(data, stop_time.time())
             # print('prog_end', prog_end)
 
-            # obrazki są na stronie programu i trzeba jeszcze jedną soup
             try:
-                # page_url = urlopen(prog_url)
-                # url_soup = BeautifulSoup(page_url, 'lxml')
-                url_soup = await _async_request_soup(prog_url)
-
-                prog_img = 'http:' + url_soup.find('img', attrs={'class': 'lazyImg'})['data-original']
-
+                prog_img = 'http:' + (ul_tag[prg_item].find('img')['src'])
 
             except Exception:
                 prog_img = ''
-                _LOGGER.error('No channel image')
+                _LOGGER.error('Exception occured while fetching the channel logo')
 
-            # print(prog_img)
-            # print(programs)
             programs.append(
                 {'name': prog_name, 'type': prog_type, 'img': prog_img,
-                 'url': prog_url, 'summary': prog_summary, 'start_time': prog_start,
+                 'url': prog_url, 'summary': None, 'start_time': prog_start,
                  'end_time': prog_end})
-
         except Exception as exc:
             _LOGGER.error('Exception occured while fetching the program guide for channel %s: %s', chan, exc)
             import traceback
-
             traceback.print_exc()
-
     # Set the program summaries asynchronously
 
     # tasks = [async_set_summary(prog) for prog in programs]
+    tasks = async_set_summary(programs)
+    print('taski ', tasks)
+    programs = tasks
+
     # programs = await asyncio.gather(*tasks)
 
     if programs:
@@ -330,32 +336,19 @@ def _request_soup(*args, **kwargs):
 def get_channels(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_channels(*args, **kwargs))
-    # print('get_channels res', len(res['data']))
-    # print('get_channels res', len(res['data']), res)
-
+    # print('get_channels res', res)
     return res
 
 
 def get_program_guide(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_program_guide(*args, **kwargs))
-    # print('get_program_guide res', res)
+    print('get_program_guide res', res)
     return res
 
 
 def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
-
-    # for key in res:
-    #     print(key, res[key])
-    # print('get_current_program res', res)
-    # print(res['name'])
-    # print(res['start_time'])
-    # print(res['end_time'])
-
+    print('get_current_program res', res)
     return res
-
-# get_program_guide('tvp3_krakow')
-
-# get_current_program('tvp 1')
