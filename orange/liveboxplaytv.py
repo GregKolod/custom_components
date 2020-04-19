@@ -258,9 +258,7 @@ class LiveboxPlayTv(object):
         _LOGGER.info('Tune to %s',
                      self.get_channel_from_epg_id(epg_id)['name'])
         _LOGGER.debug('EPG ID string: %s', epg_id_str)
-        # FIXME We cannot use rq here since requests automatically urlencodes
-        # the '*' characters
-        # return self.rq('09', {'epg_id': epg_id_str, 'uui': 1})
+
         url = 'http://{}:{}/remoteControl/cmd?operation=09&epg_id={}&uui=1'.\
             format(self.hostname, self.port, epg_id_str)
         resp = requests.get(url, timeout=self.timeout)
