@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
 from channels import CHANNELS
+import pprint
 
-img_src = None
+img_src = 0
 
 
 def obraz(channel):
+    global img_src
     for i in CHANNELS:
         if i['index'] == str(channel):
             img_src = i['logo']
+
         img = 'https://klient.orange.pl/tv-pakiety/channels/{}-logo.png'.format(img_src)
-        print(img)
+        pprint.pprint(img)
+    return
 
-
-return
 
 obraz(2)
 
