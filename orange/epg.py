@@ -221,7 +221,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
                 prog_type = ''
                 # print('prog_type e', prog_type)
                 # dla zakończenia programy nie ma typu programu
-                _LOGGER.error('Exception occured while fetching the program genre')
+                _LOGGER.debug('Exception occured while fetching the program genre')
 
             try:
                 prog_summary = ul_tag[prg_item].find('div', class_='titles').find('p').text.strip()
@@ -230,7 +230,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
             except Exception:
                 prog_summary = ''
                 # print('prog_summary  e', prog_summary)
-                _LOGGER.error('Exception occured while fetching the program summary')
+                _LOGGER.debug('Exception occured while fetching the program summary')
 
             start_time = (
                 datetime.datetime.strptime(ul_tag[prg_item].find('span', class_='hour').text.strip(), '%H:%M'))
@@ -245,7 +245,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
             except Exception:
 
                 stop_time = start_time + datetime.timedelta(hours=2)
-                _LOGGER.error('Exception occured while fetching the program end')
+                _LOGGER.debug('Exception occured while fetching the program end')
 
             today = datetime.date.today()
 
@@ -257,16 +257,18 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
 
             # obrazki są na stronie programu i trzeba jeszcze jedną soup
             try:
-                # page_url = urlopen(prog_url)
-                # url_soup = BeautifulSoup(page_url, 'lxml')
-                url_soup = await _async_request_soup(prog_url)
 
+                url_soup = await _async_request_soup(prog_url)
                 prog_img = 'http:' + url_soup.find('img', attrs={'class': 'lazyImg'})['data-original']
+                if prog_img == 'http://ocdn.eu/program-tv-transforms/1/LCFktlEYWRtL2IzNzk5OGMwYTExODlhNWNmYzA4ZWY5OTQwNTllNTQ4N2Q3N2U2Y2RkMWVlMTIxMGU4NTRmYjdiYzllNmNmNjKRlQLNASwAwsM':
+                    prog_img = ''
+                    # print('Onet fake '+prog_img)
+                    _LOGGER.debug('Fake ONET image')
 
 
             except Exception:
                 prog_img = ''
-                _LOGGER.error('No channel image')
+                _LOGGER.debug('No channel image')
 
             # print(prog_img)
             # print(programs)
@@ -340,13 +342,20 @@ def get_program_guide(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_program_guide(*args, **kwargs))
     # print('get_program_guide res', res)
+
+    # for key in range(len(res)):
+    #     print(key, res[key]['start_time'])
+    #     # # print('get_current_program res', res)
+    #     # print(res['name'])
+    #     # print(res['start_time'])
+    #     # print(res['end_time'])
     return res
 
 
 def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
-
+    #
     # for key in res:
     #     print(key, res[key])
     # print('get_current_program res', res)
@@ -356,6 +365,6 @@ def get_current_program(*args, **kwargs):
 
     return res
 
-# get_program_guide('tvp3_krakow')
+# get_program_guide('tvp info')
 
-# get_current_program('tvp 1')
+# get_current_program('tvp info')
