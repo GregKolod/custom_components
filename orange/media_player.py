@@ -124,14 +124,11 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
                         self._media_last_updated = dt_util.utcnow()
                 # Set media image to current program if a thumbnail is
                 # available. Otherwise we'll use the channel's image.
-                img_size = 800
-                prg_img_url = await self._client.async_get_current_program_image(
-                    img_size
-                )
+                prg_img_url = await self._client.async_get_current_program_image()
                 if prg_img_url:
                     self._media_image_url = prg_img_url
                 else:
-                    chan_img_url = self._client.get_current_channel_image(img_size)
+                    chan_img_url = self._client.get_current_channel_image()
                     self._media_image_url = chan_img_url
         except requests.ConnectionError:
             self._state = None
@@ -273,3 +270,4 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
     def media_previous_track(self):
         """Send the previous track command."""
         self._client.channel_down()
+

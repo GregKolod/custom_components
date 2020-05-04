@@ -10,7 +10,7 @@ import requests
 import time
 
 from .epg import async_get_current_program as async_get_cprg
-from .epg import resize_program_image
+# from .epg import resize_program_image
 from fuzzywuzzy import process
 
 from .channels import CHANNELS
@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class LiveboxPlayTv(object):
-    def __init__(self, hostname, port=8080, timeout=3, refresh_frequency=60):
+    def __init__(self, hostname, port, timeout=3, refresh_frequency=60):
         from datetime import timedelta
         self.hostname = hostname
         self.port = port
@@ -146,11 +146,12 @@ class LiveboxPlayTv(object):
             return res.get('name')
 
     @asyncio.coroutine
-    def async_get_current_program_image(self, img_size=300):
+    def async_get_current_program_image(self):
 
         res = yield from self.async_get_current_program()
         if res:
-            return resize_program_image(res.get('img'), img_size)
+            return res.get('img')
+            # return resize_program_image(res.get('img'), img_size)
 
     def get_current_channel(self):
         epg_id = self.info.get('playedMediaId')
@@ -172,13 +173,13 @@ class LiveboxPlayTv(object):
                 return 'Replay'
         return channel_name
 
-    def get_current_channel_image(self, img_size=300):
+    def get_current_channel_image(self):
         channel = self.channel
         if self.channel == 'N/A':
             return
-        return self.get_channel_image(channel=channel, img_size=img_size)
+        return self.get_channel_image(channel=channel)
 
-    def get_channel_image(self, channel, img_size=300, skip_cache=False):
+    def get_channel_image(self, channel, skip_cache=False):
         """Get the logo for a channel"""
 
         if not channel:
@@ -191,14 +192,6 @@ class LiveboxPlayTv(object):
             _LOGGER.debug('Cache hit: %s -> %s', channel, img)
             return img
 
-        # channel_info = self.get_channel_info(channel)
-        # if 'max_img_size' in channel_info:
-        #     if img_size > channel_info['max_img_size']:
-        #         _LOGGER.info(
-        #             'Requested image size is bigger than the max, '
-        #             'setting it to %s', channel_info['max_img_size']
-        #         )
-        #         img_size = channel_info['max_img_size']
         try:
             img_src = None
             for i in CHANNELS:
