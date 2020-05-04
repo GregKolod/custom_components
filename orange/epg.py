@@ -97,19 +97,19 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
         return _CACHE['channels']
 
 
-def resize_program_image(img_url, img_size=300):
-    '''
-    TODO - Nie działa zupełnie - do zmiany w kodzie
-    Resize a program's thumbnail to the desired dimension
-    '''
-    try:
-        imgr_url = img_url.replace('crop-100x63', '470x265')
-    # todo
-    except Exception as exc:
-        _LOGGER.error('Exception occured while converting image %s', exec)
-        imgr_url = img_url
-
-    return imgr_url
+# def resize_program_image(img_url0):
+#     '''
+#     TODO - Nie działa zupełnie - do zmiany w kodzie
+#     Resize a program's thumbnail to the desired dimension
+#     '''
+#     try:
+#         imgr_url = img_url.replace('crop-100x63', '470x265')
+#     # todo
+#     except Exception as exc:
+#         _LOGGER.error('Exception occured while converting image %s', exec)
+#         imgr_url = img_url
+#
+#     return imgr_url
 
 
 def get_current_program_progress(program):
