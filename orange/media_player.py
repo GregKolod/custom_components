@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerDevice
 from homeassistant.components.media_player.const import (
     MEDIA_TYPE_CHANNEL,
+    MEDIA_TYPE_TVSHOW,
     SUPPORT_NEXT_TRACK,
     SUPPORT_PAUSE,
     SUPPORT_PLAY,
@@ -101,11 +102,16 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
         self._media_remaining_time = None
         self._media_image_url = None
         self._media_last_updated = None
+        self._media_series_title = None
+        self._media_season = None
+        self._media_episode = None
+        self._media_type = MEDIA_TYPE_CHANNEL
 
     async def async_update(self):
         """Retrieve the latest data."""
 
         try:
+            self._media_type = self._client.media_type
             self._state = self.refresh_state()
             # Update channel list
             self.refresh_channel_list()
@@ -125,6 +131,11 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
                 # Set media image to current program if a thumbnail is
                 # available. Otherwise we'll use the channel's image.
                 prg_img_url = await self._client.async_get_current_program_image()
+
+                self._media_series_title = '_series_title'
+                self._media_season = '_season'
+                self._media_episode = '_episode'
+
                 if prg_img_url:
                     self._media_image_url = prg_img_url
                 else:
@@ -163,8 +174,8 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
     @property
     def media_content_type(self):
         """Content type of current playing media."""
-        # return self._client.media_type
-        return MEDIA_TYPE_CHANNEL
+        return self._client.media_type
+        # return MEDIA_TYPE_CHANNEL
 
     @property
     def media_image_url(self):
@@ -271,3 +282,17 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
         """Send the previous track command."""
         self._client.channel_down()
 
+    @property
+    def media_series_title(self):
+        """Title of series of current playing media, TV show only."""
+        return self._media_series_title
+
+    @property
+    def media_season(self):
+        """Season of current playing media, TV show only."""
+        return self._media_season
+
+    @property
+    def media_episode(self):
+        """Episode of current playing media, TV show only."""
+        return self._media_episode
