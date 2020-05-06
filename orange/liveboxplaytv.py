@@ -151,7 +151,7 @@ class LiveboxPlayTv(object):
         res = yield from self.async_get_current_program()
         if res:
             return res.get('img')
-            # return resize_program_image(res.get('img'), img_size)
+
 
     def get_current_channel(self):
         epg_id = self.info.get('playedMediaId')
@@ -209,13 +209,13 @@ class LiveboxPlayTv(object):
     def get_channels(self):
         return CHANNELS
 
-    def __update(self):
-        # obsolate
-        _LOGGER.info('Refresh Orange API data')
-        url = 'http://lsm-rendezvous040413.orange.fr/API/?output=json&withChannels=1'
-        resp = requests.get(url)
-        resp.raise_for_status()
-        return resp.json()
+    # def __update(self):
+    #     # obsolate
+    #     _LOGGER.info('Refresh Orange API data')
+    #     url = 'http://lsm-rendezvous040413.orange.fr/API/?output=json&withChannels=1'
+    #     resp = requests.get(url)
+    #     resp.raise_for_status()
+    #     return resp.json()
 
     def get_channel_names(self, json_output=False):
         channels = [x['name'] for x in CHANNELS]
