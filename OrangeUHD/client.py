@@ -9,7 +9,7 @@ import requests
 import time
 import homeassistant.util.dt as dt_util
 import calendar
-
+import epg
 from fuzzywuzzy import process
 from .const import CHANNELS
 from .const import KEYS
@@ -55,7 +55,7 @@ class LiveboxTvUhdClient(object):
         self._show_position = 0
         self._last_channel_id = None
         self._cache_channel_img = {}
-        assert isinstance(self.info, dict), "Failed to retrive info from {}".format(self.hostname)
+        assert isinstance(self.info, dict), "Failed to retrieve info from {}".format(self.hostname)
 
     def update(self):
         _LOGGER.debug("Refresh Orange API data")
@@ -96,11 +96,11 @@ class LiveboxTvUhdClient(object):
                 self._show_start_dt = 0
 
                 # get information from EPG
-                self._channel_id = '34'
-                get_params = OrderedDict(
-                    {"groupBy": "channel", "period": "current", "epgIds": self._channel_id, "mco": "OFR"})
-                respepg = requests.get(URL_EPG, params=get_params, timeout=self.timeout)
-                _data2 = respepg.json()
+                # self._channel_id = '34'
+                # get_params = OrderedDict(
+                #     {"groupBy": "channel", "period": "current", "epgIds": self._channel_id, "mco": "OFR"})
+                # respepg = requests.get(URL_EPG, params=get_params, timeout=self.timeout)
+                # _data2 = respepg.json()
 
                 if respepg.status_code == 200 and _data2[self._channel_id]:
                     # Show title depending of programType
@@ -114,9 +114,14 @@ class LiveboxTvUhdClient(object):
                         self._media_type = MEDIA_TYPE_CHANNEL
                         self._show_title = _data2[self._channel_id][0]["title"]
 
+                    # self._show_definition = _data2[self._channel_id][0]["definition"]
+                    # self._show_start_dt = _data2[self._channel_id][0]["diffusionDate"]
+                    # self._show_duration = _data2[self._channel_id][0]["duration"]
+
                     self._show_definition = _data2[self._channel_id][0]["definition"]
                     self._show_start_dt = _data2[self._channel_id][0]["diffusionDate"]
                     self._show_duration = _data2[self._channel_id][0]["duration"]
+
                     if _data2[self._channel_id][0]["covers"]:
                         self._show_img = _data2[self._channel_id][0]["covers"][1]["url"]
 
