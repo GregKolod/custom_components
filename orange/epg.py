@@ -97,20 +97,6 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
         return _CACHE['channels']
 
 
-# def resize_program_image(img_url0):
-#     '''
-#     TODO - Nie działa zupełnie - do zmiany w kodzie
-#     Resize a program's thumbnail to the desired dimension
-#     '''
-#     try:
-#         imgr_url = img_url.replace('crop-100x63', '470x265')
-#     # todo
-#     except Exception as exc:
-#         _LOGGER.error('Exception occured while converting image %s', exec)
-#         imgr_url = img_url
-#
-#     return imgr_url
-
 
 def get_current_program_progress(program):
     '''
@@ -197,7 +183,9 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
 
     ul_tag = soup.find('div', class_='emissions').find('ul').find_all('li')
 
-    # print(ul_tag)
+    """ What the date today from EPG"""
+    today_str = soup.find('div', class_='emissions').find('span', class_='date').find('span').text.strip()
+    today = datetime.datetime.strptime(today_str, '%Y-%m-%d').date()
 
     for prg_item in range(len(ul_tag)):
 
@@ -234,23 +222,26 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
 
             start_time = (
                 datetime.datetime.strptime(ul_tag[prg_item].find('span', class_='hour').text.strip(), '%H:%M'))
-            # print(start_time)
+            # print('start_time' , start_time)
 
             try:
 
                 stop_time = (datetime.datetime.strptime(
                     ul_tag[prg_item + 1].find('span', class_='hour').text.strip(), '%H:%M'))
-                # print(stop_time)
+                # print('stop_time', stop_time)
 
             except Exception:
 
                 stop_time = start_time + datetime.timedelta(hours=2)
                 _LOGGER.debug('Exception occured while fetching the program end')
 
-            today = datetime.date.today()
-
             prog_start = datetime.datetime.combine(today, start_time.time())
             # print('prog_start', prog_start)
+
+            """ is it next day?"""
+            if start_time > stop_time:
+                # print('nowa doba')
+                today += datetime.timedelta(days=1)
 
             prog_end = datetime.datetime.combine(today, stop_time.time())
             # print('prog_end', prog_end)
@@ -365,6 +356,6 @@ def get_current_program(*args, **kwargs):
 
     return res
 
-# get_program_guide('tvp info')
+# get_program_guide('tvn')
 
 # get_current_program('tvp info')
