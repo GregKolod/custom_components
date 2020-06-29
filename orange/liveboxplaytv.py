@@ -10,7 +10,7 @@ import requests
 import time
 
 from .epg import async_get_current_program as async_get_cprg
-# from .epg import resize_program_image
+
 from fuzzywuzzy import process
 
 from .channels import CHANNELS
@@ -208,14 +208,6 @@ class LiveboxPlayTv(object):
 
     def get_channels(self):
         return CHANNELS
-
-    # def __update(self):
-    #     # obsolate
-    #     _LOGGER.info('Refresh Orange API data')
-    #     url = 'http://lsm-rendezvous040413.orange.fr/API/?output=json&withChannels=1'
-    #     resp = requests.get(url)
-    #     resp.raise_for_status()
-    #     return resp.json()
 
     def get_channel_names(self, json_output=False):
         channels = [x['name'] for x in CHANNELS]
