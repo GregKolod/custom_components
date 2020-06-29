@@ -320,27 +320,6 @@ async def async_get_current_program(channel, no_cache=False):
             return prog
 
 
-async def async_get_current_program_summary(channel, no_cache=False):
-    """
-    Get the current program summary
-    """
-    chan = await async_determine_channel(channel)
-    # print('async_get_current_program_summary chan ', chan)
-
-    guide = await async_get_program_guide(chan, no_cache)
-
-    # print('async_get_current_program_summary guide ', guide)
-
-    if not guide:
-        _LOGGER.warning('Could not retrieve TV program summary for %s', channel)
-        # print('no guide')
-        return
-    for prog in guide:
-        summary = prog.get('summary')
-        # print(summary)
-
-    return summary
-
 
 def _request_soup(*args, **kwargs):
     loop = asyncio.get_event_loop()
@@ -376,22 +355,7 @@ def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
     #
-    print(res['name'])
-    # for key in res:
-
-    #     print(key, res[key])
-    # print('get_current_program res', res)
-    #     print(res['name'])
-    # print(res['start_time'])
-    # print(res['end_time'])
-
-    return res
-
-
-def get_current_program_summary(*args, **kwargs):
-    loop = asyncio.get_event_loop()
-    res = loop.run_until_complete(async_get_current_program_summary(*args, **kwargs))
-    # print(res)
+    # print(res['name'])
 
     return res
 
@@ -399,4 +363,4 @@ def get_current_program_summary(*args, **kwargs):
 # get_program_guide('tvn')
 # get_current_program('tvn')
 
-get_current_program_summary('tvn')
+# get_current_program_summary('tvn')

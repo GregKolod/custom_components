@@ -134,7 +134,9 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
                 self._current_program = program.get("name")
                 self._media_remaining_time = epg.get_remaining_time(program)
                 self._media_last_updated = dt_util.utcnow()
-                self._summary = epg.get_current_program_summary
+                self._summary = epg.get_current_program_summary(program)
+
+                _LOGGER.warning('summary %s', self._summary)
 
                 prg_img_url = await self._client.async_get_current_program_image()
 

@@ -147,11 +147,9 @@ class LiveboxPlayTv(object):
 
     @asyncio.coroutine
     def async_get_current_program_image(self):
-
         res = yield from self.async_get_current_program()
         if res:
             return res.get('img')
-
 
     def get_current_channel(self):
         epg_id = self.info.get('playedMediaId')
@@ -244,7 +242,7 @@ class LiveboxPlayTv(object):
                      self.get_channel_from_epg_id(epg_id)['name'])
         _LOGGER.debug('EPG ID string: %s', epg_id_str)
 
-        url = 'http://{}:{}/remoteControl/cmd?operation=09&epg_id={}&uui=1'.\
+        url = 'http://{}:{}/remoteControl/cmd?operation=09&epg_id={}&uui=1'. \
             format(self.hostname, self.port, epg_id_str)
         resp = requests.get(url, timeout=self.timeout)
         resp.raise_for_status()
@@ -307,4 +305,3 @@ class LiveboxPlayTv(object):
         resp = requests.get(url)
         resp.raise_for_status()
         return resp.json()
-
