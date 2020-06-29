@@ -376,14 +376,7 @@ def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
     #
-    print(res['name'])
-    # for key in res:
-
-    #     print(key, res[key])
-    # print('get_current_program res', res)
-    #     print(res['name'])
-    # print(res['start_time'])
-    # print(res['end_time'])
+    # print(res['name'])
 
     return res
 
@@ -399,4 +392,4 @@ def get_current_program_summary(*args, **kwargs):
 # get_program_guide('tvn')
 # get_current_program('tvn')
 
-get_current_program_summary('tvn')
+# get_current_program_summary('tvn')
