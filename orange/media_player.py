@@ -105,6 +105,7 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
         self._media_series_title = None
         self._media_season = None
         self._media_episode = None
+        self._summary = None
         self._media_type = MEDIA_TYPE_CHANNEL
 
     async def async_update(self):
@@ -117,24 +118,30 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
             self.refresh_channel_list()
             # Update current channel
             channel = self._client.channel
+
+            """After program switch reset programe name and set channel logo  """
+
+            # self._media_image_url = self._client.get_current_channel_image()
+
+            """ Now get the proper values"""
+
             if channel is not None:
+                self._current_program = None
+                self._media_image_url = self._client.get_current_channel_image()
                 self._current_channel = channel
                 program = await self._client.async_get_current_program()
-                if program and self._current_program != program.get("name"):
-                    self._current_program = program.get("name")
-                    # Media progress info
-                    self._media_duration = epg.get_program_duration(program)
-                    rtime = epg.get_remaining_time(program)
-                    if rtime != self._media_remaining_time:
-                        self._media_remaining_time = rtime
-                        self._media_last_updated = dt_util.utcnow()
-                # Set media image to current program if a thumbnail is
-                # available. Otherwise we'll use the channel's image.
+                self._media_duration = epg.get_program_duration(program)
+                self._current_program = program.get("name")
+                self._media_remaining_time = epg.get_remaining_time(program)
+                self._media_last_updated = dt_util.utcnow()
+                self._summary = epg.get_current_program_summary
+
                 prg_img_url = await self._client.async_get_current_program_image()
 
-                self._media_series_title = '_series_title'
-                self._media_season = '_season'
-                self._media_episode = '_episode'
+                if self._media_type == MEDIA_TYPE_TVSHOW:
+                    self._media_series_title = MEDIA_TYPE_TVSHOW
+                    self._media_season = '1'
+                    self._media_episode = '2'
 
                 if prg_img_url:
                     self._media_image_url = prg_img_url
@@ -282,6 +289,9 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
         """Send the previous track command."""
         self._client.channel_down()
 
+    def refresh_orange_data(self):
+        info = self._client.info
+
     @property
     def media_series_title(self):
         """Title of series of current playing media, TV show only."""
@@ -296,3 +306,8 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
     def media_episode(self):
         """Episode of current playing media, TV show only."""
         return self._media_episode
+
+    @property
+    def device_state_attributes(self):
+        """Return the device specific state attributes."""
+        return {'summary': self._summary}
