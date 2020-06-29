@@ -343,11 +343,6 @@ def get_program_guide(*args, **kwargs):
     # print('get_program_guide res', res)
 
     # for key in range(len(res)):
-    #     # print(key, res[key]['start_time'])
-    #     print('get_current_program res', res)
-    #     print(res['name'])
-    #     # print(res['start_time'])
-    #     # print(res['end_time'])
     return res
 
 
