@@ -86,7 +86,7 @@ async def async_get_channels(no_cache=False, refresh_interval=4):
             tvStationName = tv_station[station].find('a')['title']
             # print('nazwa_stacji', tvStationName)
             channels[tvStationName] = BASE_URL + href
-            # print('nazwa_stacji channels', channels[tvStationName])
+            # print(station, ' nazwa_stacji channels', channels[tvStationName])
 
         except Exception as exc:
             _LOGGER.error('Exception occured while fetching the channel '
@@ -155,8 +155,6 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
     # print('#async_get_program_guide chan', chan)
 
     now = datetime.datetime.now()
-    # today = datetime.date.today()
-
     max_cache_age = datetime.timedelta(hours=refresh_interval)
 
     if not no_cache and 'guide' in _CACHE and _CACHE.get('guide').get(chan):
@@ -186,6 +184,16 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
     """ What the date today from EPG"""
     today_str = soup.find('div', class_='emissions').find('span', class_='date').find('span').text.strip()
     today = datetime.datetime.strptime(today_str, '%Y-%m-%d').date()
+
+    # ul_tag2 = soup.find('div', class_='emissions').find('ul').find_all('li')
+    #
+    # print(ul_tag2[10].get_text())
+    # print('------')
+    # print(ul_tag2[10].name)
+    # print(ul_tag2[10].attrs)
+    # print('------')
+    # print(ul_tag2[10].find(attrs={'class': ['hh07', 'fltrSerie']}))
+    # print(ul_tag2[10].find_previous('li', class_=['hh07', 'fltrSerie']))
 
     for prg_item in range(len(ul_tag)):
 
@@ -288,10 +296,9 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
 
 
 async def async_get_current_program(channel, no_cache=False):
-    # todo scrap albo bez zmian bo pobiera dane z innych procedur
-    '''
+    """
     Get the current program info
-    '''
+    """
     chan = await async_determine_channel(channel)
     # print('async_get_current_program chan ', chan)
 
@@ -311,6 +318,28 @@ async def async_get_current_program(channel, no_cache=False):
         if start < now < end:
             # print('async_get_current_program prog', prog)
             return prog
+
+
+async def async_get_current_program_summary(channel, no_cache=False):
+    """
+    Get the current program summary
+    """
+    chan = await async_determine_channel(channel)
+    # print('async_get_current_program_summary chan ', chan)
+
+    guide = await async_get_program_guide(chan, no_cache)
+
+    # print('async_get_current_program_summary guide ', guide)
+
+    if not guide:
+        _LOGGER.warning('Could not retrieve TV program summary for %s', channel)
+        # print('no guide')
+        return
+    for prog in guide:
+        summary = prog.get('summary')
+        # print(summary)
+
+    return summary
 
 
 def _request_soup(*args, **kwargs):
@@ -335,9 +364,9 @@ def get_program_guide(*args, **kwargs):
     # print('get_program_guide res', res)
 
     # for key in range(len(res)):
-    #     print(key, res[key]['start_time'])
-    #     # # print('get_current_program res', res)
-    #     # print(res['name'])
+    #     # print(key, res[key]['start_time'])
+    #     print('get_current_program res', res)
+    #     print(res['name'])
     #     # print(res['start_time'])
     #     # print(res['end_time'])
     return res
@@ -347,15 +376,27 @@ def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
     #
+    print(res['name'])
     # for key in res:
+
     #     print(key, res[key])
     # print('get_current_program res', res)
-    # print(res['name'])
+    #     print(res['name'])
     # print(res['start_time'])
     # print(res['end_time'])
 
     return res
 
-# get_program_guide('tvn')
 
-# get_current_program('tvp info')
+def get_current_program_summary(*args, **kwargs):
+    loop = asyncio.get_event_loop()
+    res = loop.run_until_complete(async_get_current_program_summary(*args, **kwargs))
+    # print(res)
+
+    return res
+
+
+# get_program_guide('tvn')
+# get_current_program('tvn')
+
+get_current_program_summary('tvn')
