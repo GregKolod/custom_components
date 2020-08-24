@@ -159,7 +159,7 @@ def get_current_program():
     return prog
 
 
-get_current_program()
+# get_current_program()
 #
 # print('nowa tura')
 #
