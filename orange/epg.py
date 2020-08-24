@@ -300,6 +300,7 @@ async def async_get_current_program(channel, no_cache=False):
     Get the current program info
     """
     chan = await async_determine_channel(channel)
+
     # print('async_get_current_program chan ', chan)
 
     guide = await async_get_program_guide(chan, no_cache)
@@ -341,7 +342,7 @@ def get_program_guide(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_program_guide(*args, **kwargs))
     # print('get_program_guide res', res)
-
+    print(res)
     # for key in range(len(res)):
     return res
 
@@ -355,7 +356,7 @@ def get_current_program(*args, **kwargs):
     return res
 
 
-# get_program_guide('tvn')
+get_program_guide('tvn')
 # get_current_program('tvn')
 
 # get_current_program_summary('tvn')

@@ -118,6 +118,7 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
             self.refresh_channel_list()
             # Update current channel
             channel = self._client.channel
+            self._summary = ''
 
             """After program switch reset programe name and set channel logo  """
 
