@@ -316,9 +316,3 @@ class LiveboxPlayTvDevice(MediaPlayerEntity):
     def device_state_attributes(self):
         """Return the device specific state attributes."""
         return {'summary': self._summary , 'description': self._description}
-
-
-    # @property
-    # def device_state_attributes(self):
-        # """Return the device specific state attributes. - full description"""
-        # return {'description': self._description}
