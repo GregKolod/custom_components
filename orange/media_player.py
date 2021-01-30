@@ -7,7 +7,7 @@ from . import epg
 import requests
 import voluptuous as vol
 
-from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerDevice
+from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     MEDIA_TYPE_CHANNEL,
     MEDIA_TYPE_TVSHOW,
@@ -83,7 +83,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     async_add_entities(livebox_devices, True)
 
 
-class LiveboxPlayTvDevice(MediaPlayerDevice):
+class LiveboxPlayTvDevice(MediaPlayerEntity):
     """Representation of an Orange Livebox Play TV."""
 
     def __init__(self, host, port, name):
@@ -106,6 +106,7 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
         self._media_season = None
         self._media_episode = None
         self._summary = None
+        self._description = None
         self._media_type = MEDIA_TYPE_CHANNEL
 
     async def async_update(self):
@@ -118,7 +119,8 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
             self.refresh_channel_list()
             # Update current channel
             channel = self._client.channel
-            self._summary = ''
+            # self._summary = ''
+            # self._description = ''
 
             """After program switch reset programe name and set channel logo  """
 
@@ -135,9 +137,9 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
                 self._current_program = program.get("name")
                 self._media_remaining_time = epg.get_remaining_time(program)
                 self._media_last_updated = dt_util.utcnow()
-                self._summary = epg.get_current_program_summary(program)
+                self._summary = program.get("summary")
+                self._description = program.get("description")
 
-                _LOGGER.warning('summary %s', self._summary)
 
                 prg_img_url = await self._client.async_get_current_program_image()
 
@@ -313,4 +315,10 @@ class LiveboxPlayTvDevice(MediaPlayerDevice):
     @property
     def device_state_attributes(self):
         """Return the device specific state attributes."""
-        return {'summary': self._summary}
+        return {'summary': self._summary , 'description': self._description}
+
+
+    # @property
+    # def device_state_attributes(self):
+        # """Return the device specific state attributes. - full description"""
+        # return {'description': self._description}
