@@ -185,15 +185,6 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
     today_str = soup.find('div', class_='emissions').find('span', class_='date').find('span').text.strip()
     today = datetime.datetime.strptime(today_str, '%Y-%m-%d').date()
 
-    # ul_tag2 = soup.find('div', class_='emissions').find('ul').find_all('li')
-    #
-    # print(ul_tag2[10].get_text())
-    # print('------')
-    # print(ul_tag2[10].name)
-    # print(ul_tag2[10].attrs)
-    # print('------')
-    # print(ul_tag2[10].find(attrs={'class': ['hh07', 'fltrSerie']}))
-    # print(ul_tag2[10].find_previous('li', class_=['hh07', 'fltrSerie']))
 
     for prg_item in range(len(ul_tag)):
 
@@ -222,7 +213,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
             try:
                 prog_summary = ul_tag[prg_item].find('div', class_='titles').find('p').text.strip()
                 # print('prog_summary ', prog_summary)
-
+                _LOGGER.debug('prog_summary ' + prog_summary)
             except Exception:
                 prog_summary = ''
                 # print('prog_summary  e', prog_summary)
@@ -258,6 +249,10 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
             try:
 
                 url_soup = await _async_request_soup(prog_url)
+                
+                prog_full_desc = url_soup.find('p', class_='entryDesc').text.strip()
+                _LOGGER.debug('prog_full_desc' + prog_full_desc)
+                
                 prog_img = 'http:' + url_soup.find('img', attrs={'class': 'lazyImg'})['data-original']
                 if prog_img == 'http://ocdn.eu/program-tv-transforms/1/LCFktlEYWRtL2IzNzk5OGMwYTExODlhNWNmYzA4ZWY5OTQwNTllNTQ4N2Q3N2U2Y2RkMWVlMTIxMGU4NTRmYjdiYzllNmNmNjKRlQLNASwAwsM':
                     prog_img = ''
@@ -267,6 +262,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
 
             except Exception:
                 prog_img = ''
+                prog_full_desc = ''
                 _LOGGER.debug('No channel image')
 
             # print(prog_img)
@@ -274,7 +270,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
             programs.append(
                 {'name': prog_name, 'type': prog_type, 'img': prog_img,
                  'url': prog_url, 'summary': prog_summary, 'start_time': prog_start,
-                 'end_time': prog_end})
+                 'end_time': prog_end, 'description': prog_full_desc})
 
         except Exception as exc:
             _LOGGER.error('Exception occured while fetching the program guide for channel %s: %s', chan, exc)
@@ -284,8 +280,7 @@ async def async_get_program_guide(channel, no_cache=False, refresh_interval=4):
 
     # Set the program summaries asynchronously
 
-    # tasks = [async_set_summary(prog) for prog in programs]
-    # programs = await asyncio.gather(*tasks)
+
 
     if programs:
         if 'guide' not in _CACHE:
@@ -300,7 +295,6 @@ async def async_get_current_program(channel, no_cache=False):
     Get the current program info
     """
     chan = await async_determine_channel(channel)
-
     # print('async_get_current_program chan ', chan)
 
     guide = await async_get_program_guide(chan, no_cache)
@@ -322,6 +316,7 @@ async def async_get_current_program(channel, no_cache=False):
 
 
 
+
 def _request_soup(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(_async_request_soup(*args, **kwargs))
@@ -332,8 +327,7 @@ def _request_soup(*args, **kwargs):
 def get_channels(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_channels(*args, **kwargs))
-    # print('get_channels res', len(res['data']))
-    # print('get_channels res', len(res['data']), res)
+ 
 
     return res
 
@@ -341,9 +335,7 @@ def get_channels(*args, **kwargs):
 def get_program_guide(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_program_guide(*args, **kwargs))
-    # print('get_program_guide res', res)
-    print(res)
-    # for key in range(len(res)):
+
     return res
 
 
@@ -351,12 +343,7 @@ def get_current_program(*args, **kwargs):
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(async_get_current_program(*args, **kwargs))
     #
-    # print(res['name'])
-
     return res
 
 
-get_program_guide('tvn')
-# get_current_program('tvn')
 
-# get_current_program_summary('tvn')
