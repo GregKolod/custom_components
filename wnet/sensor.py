@@ -1,8 +1,3 @@
-# import voluptuous as vol
-# import homeassistant.helpers.config_validation as cv
-# from homeassistant.components.sensor import (PLATFORM_SCHEMA)
-# from homeassistant.helpers.entity import async_generate_entity_id
-
 from homeassistant.helpers.entity import Entity
 
 import datetime
@@ -157,14 +152,3 @@ def get_current_program():
     prog = 'brak programu'
     print(prog)
     return prog
-
-
-# get_current_program()
-#
-# print('nowa tura')
-#
-# get_current_program()
-#
-# print('nowa tura')
-#
-# get_current_program()
