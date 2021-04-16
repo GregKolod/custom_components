@@ -39,15 +39,15 @@ DEFAULT_NAME = "Orange TV"
 DEFAULT_PORT = 8080
 
 SUPPORT_LIVEBOXPLAYTV = (
-    SUPPORT_TURN_OFF
-    | SUPPORT_TURN_ON
-    | SUPPORT_NEXT_TRACK
-    | SUPPORT_PAUSE
-    | SUPPORT_PREVIOUS_TRACK
-    | SUPPORT_VOLUME_STEP
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_PLAY
+        SUPPORT_TURN_OFF
+        | SUPPORT_TURN_ON
+        | SUPPORT_NEXT_TRACK
+        | SUPPORT_PAUSE
+        | SUPPORT_PREVIOUS_TRACK
+        | SUPPORT_VOLUME_STEP
+        | SUPPORT_VOLUME_MUTE
+        | SUPPORT_SELECT_SOURCE
+        | SUPPORT_PLAY
 )
 
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
@@ -113,20 +113,18 @@ class LiveboxPlayTvDevice(MediaPlayerEntity):
         """Retrieve the latest data."""
 
         try:
-            self._media_type = self._client.media_type
+            await self._client.async_update()
             self._state = self.refresh_state()
+            _LOGGER.debug('mp _state %s', self._state)
+            self._media_type = self._client.media_type
+
             # Update channel list
             self.refresh_channel_list()
             # Update current channel
             channel = self._client.channel
-            # self._summary = ''
-            # self._description = ''
+            self._summary = None
+            self._description = None
 
-            """After program switch reset programe name and set channel logo  """
-
-            # self._media_image_url = self._client.get_current_channel_image()
-
-            """ Now get the proper values"""
 
             if channel is not None:
                 self._current_program = None
@@ -140,22 +138,21 @@ class LiveboxPlayTvDevice(MediaPlayerEntity):
                 self._summary = program.get("summary")
                 self._description = program.get("description")
 
-
                 prg_img_url = await self._client.async_get_current_program_image()
 
-                if self._media_type == MEDIA_TYPE_TVSHOW:
-                    self._media_series_title = MEDIA_TYPE_TVSHOW
-                    self._media_season = '1'
-                    self._media_episode = '2'
+                # if self._media_type == MEDIA_TYPE_TVSHOW:
+                #     self._media_series_title = MEDIA_TYPE_TVSHOW
+                #     self._media_season = '1'
+                #     self._media_episode = '2'
 
                 if prg_img_url:
                     self._media_image_url = prg_img_url
                 else:
                     chan_img_url = self._client.get_current_channel_image()
                     self._media_image_url = chan_img_url
+
         except requests.ConnectionError:
             self._state = None
-
 
     @property
     def name(self):
@@ -315,4 +312,4 @@ class LiveboxPlayTvDevice(MediaPlayerEntity):
     @property
     def device_state_attributes(self):
         """Return the device specific state attributes."""
-        return {'summary': self._summary , 'description': self._description}
+        return {'summary': self._summary, 'description': self._description}

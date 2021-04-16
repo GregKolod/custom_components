@@ -3,6 +3,7 @@
 
 
 from collections import OrderedDict
+import aiohttp
 import asyncio
 import json
 import logging
@@ -10,13 +11,14 @@ import requests
 import time
 
 from .epg import async_get_current_program as async_get_cprg
-
 from fuzzywuzzy import process
 
 from .channels import CHANNELS
 from .keys import KEYS
 
 _LOGGER = logging.getLogger(__name__)
+
+__version__ = '0.0.4'
 
 
 class LiveboxPlayTv(object):
@@ -25,14 +27,39 @@ class LiveboxPlayTv(object):
         self.hostname = hostname
         self.port = port
         self.timeout = timeout
-        assert isinstance(self.info, dict), \
-            'Failed to retrive info from {}'.format(self.hostname)
+
         self._cache_channel_img = {}
         self.refresh_frequency = timedelta(seconds=refresh_frequency)
 
+    async def async_update(self):
+        _LOGGER.debug("Refresh Orange API data")
+        _data = None
+        self._osd_context = None
+        self._channel_id = None
+
+        _datalivebox = await self.async_rq(10)
+
+        if _datalivebox:
+            res = _datalivebox["result"]["data"]
+
+        _LOGGER.debug("self.async_rq %s", res)
+        self._media_type = res.get('playedMediaType')
+        self._media_state = res.get('playedMediaState')
+        self._osd_contex = res.get('osdContext')
+        self._media_position = res.get('playedMediaPosition')
+        self._epg_id = res.get('playedMediaId')
+        self._standby_state = res.get('activeStandbyState')
+        self._timeshift_state = res.get('timeShiftingState')
+        self._mac_address = res.get('macAddress')
+        self._name = res.get('friendlyName')
+        self._wol_support = res.get('wol_support')
+
+        pass
+
     @property
     def standby_state(self):
-        return self.info.get('activeStandbyState') == '0'
+        # return self.info.get('activeStandbyState') == '0'
+        return self._standby_state == '0'
 
     @property
     def channel(self):
@@ -48,7 +75,8 @@ class LiveboxPlayTv(object):
 
     @property
     def epg_id(self):
-        return self.info.get('playedMediaId')
+        # return self.info.get('playedMediaId')
+        return self._epg_id
 
     @epg_id.setter
     def epg_id(self, value):
@@ -64,35 +92,41 @@ class LiveboxPlayTv(object):
 
     @property
     def osd_context(self):
-        return self.info.get('osdContext')
+        return self._osd_contex
 
     @property
     def media_state(self):
-        return self.info.get('playedMediaState')
+        return self._media_state
 
     @property
     def media_position(self):
-        return self.info.get('playedMediaPosition')
+        # return self.info.get('playedMediaPosition')
+        return self._media_position
 
     @property
     def media_type(self):
-        return self.info.get('playedMediaType')
+        return self._media_type
+        # return self.info.get('playedMediaType')
 
     @property
     def timeshift_state(self):
-        return self.info.get('timeShiftingState')
+        # return self.info.get('timeShiftingState')
+        return self._timeshift_state
 
     @property
     def mac_address(self):
-        return self.info.get('macAddress')
+        # return self.info.get('macAddress')
+        return self._mac_address
 
     @property
     def name(self):
-        return self.info.get('friendlyName')
+        # return self.info.get('friendlyName')
+        return self._name
 
     @property
     def wol_support(self):
-        return self.info.get('wolSupport') == '0'
+        # return self.info.get('wolSupport') == '0'
+        return self._wol_support == '0'
 
     @property
     def is_on(self):
@@ -112,13 +146,24 @@ class LiveboxPlayTv(object):
         get_params = OrderedDict({'operation': operation})
         if params:
             get_params.update(params)
-        _LOGGER.debug('GET parameters: %s', get_params)
+            _LOGGER.debug('GET parameters: %s', get_params)
         resp = requests.get(url, params=get_params, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
-    def get_info(self):
-        return self.rq(10)['result']['data']
+    async def async_rq(self, operation, params=None):
+        url = 'http://{}:{}/remoteControl/cmd'.format(self.hostname, self.port)
+        get_params = OrderedDict({'operation': operation})
+        if params:
+            get_params.update(params)
+            _LOGGER.debug('GET parameters: %s', get_params)
+        async with aiohttp.ClientSession() as session:
+            resp = await session.get(url, params=get_params)
+            text = await resp.json()
+            return text
+
+    async def async_get_info(self):
+        return await self.async_update()
 
     def state(self):
         return self.standby_state
@@ -126,7 +171,7 @@ class LiveboxPlayTv(object):
     def turn_on(self):
         if not self.standby_state:
             self.press_key(key=KEYS['POWER'])
-            time.sleep(.8)
+            time.sleep(2)
             self.press_key(key=KEYS['OK'])
 
     def turn_off(self):
@@ -147,12 +192,16 @@ class LiveboxPlayTv(object):
 
     @asyncio.coroutine
     def async_get_current_program_image(self):
+
         res = yield from self.async_get_current_program()
         if res:
             return res.get('img')
+            # return resize_program_image(res.get('img'), img_size)
 
     def get_current_channel(self):
-        epg_id = self.info.get('playedMediaId')
+        # epg_id = self.info.get('playedMediaId')
+        epg_id = self._epg_id
+        _LOGGER.debug('epg id %s', epg_id)
         return self.get_channel_from_epg_id(epg_id)
 
     def get_current_channel_name(self):
@@ -165,10 +214,11 @@ class LiveboxPlayTv(object):
             # get a string representing what's on screen
             # http://forum.eedomus.com/viewtopic.php?f=50&t=2914&start=40#p36721
             osd = self.osd_context  # Avoid multiple lookups
-            if osd == 'VOD':
-                return 'VOD'
+            if osd == 'Catchup':
+                return 'Catchup'
             elif osd == 'AdvPlayer':
                 return 'Replay'
+
         return channel_name
 
     def get_current_channel_image(self):
@@ -206,6 +256,14 @@ class LiveboxPlayTv(object):
 
     def get_channels(self):
         return CHANNELS
+
+    def __update(self):
+        # obsolate
+        _LOGGER.info('Refresh Orange API data')
+        url = 'http://lsm-rendezvous040413.orange.fr/API/?output=json&withChannels=1'
+        resp = requests.get(url)
+        resp.raise_for_status()
+        return resp.json()
 
     def get_channel_names(self, json_output=False):
         channels = [x['name'] for x in CHANNELS]
